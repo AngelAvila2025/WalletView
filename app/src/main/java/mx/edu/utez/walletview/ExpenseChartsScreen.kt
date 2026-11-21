@@ -14,14 +14,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -29,10 +25,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,14 +52,14 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpenseChartsScreen() {
-    var expenseSummary by remember { mutableStateOf(ExpenseDataGenerator.generateRandomSummary()) }
+    val expenseSummary = remember { ExpenseDataGenerator.generateRandomSummary() }
 
     val pieModelProducer = remember { PieChartModelProducer() }
     val barModelProducer = remember { CartesianChartModelProducer() }
 
     val currencyFormatter = remember { NumberFormat.getCurrencyInstance(Locale.Builder().setLanguage("es").setRegion("MX").build()) }
 
-    LaunchedEffect(expenseSummary) {
+    LaunchedEffect(Unit) {
         pieModelProducer.runTransaction {
             pieModel {
                 series(expenseSummary.categories.map { it.amount })
@@ -83,18 +76,10 @@ fun ExpenseChartsScreen() {
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            text = "WalletView",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp
-                        )
-                        Text(
-                            text = "Resumen de Gastos Fintech",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                        )
-                    }
+                    Text(
+                        text = "Resumen de Gastos",
+                        fontWeight = FontWeight.Bold
+                    )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -107,19 +92,16 @@ fun ExpenseChartsScreen() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp)
+                .padding(16.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Spacer(modifier = Modifier.height(4.dp))
-
-            // Card Resumen Total y Botón de Datos Aleatorios
+            // Card de Total de Gastos
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                )
             ) {
                 Column(
                     modifier = Modifier
@@ -127,34 +109,19 @@ fun ExpenseChartsScreen() {
                         .padding(16.dp)
                 ) {
                     Text(
-                        text = "Total Gastos del Periodo",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = "Total de Gastos",
+                        style = MaterialTheme.typography.labelMedium
                     )
                     Text(
-                        text = currencyFormatter.format(expenseSummary.totalCategoryExpense),
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.ExtraBold,
+                        text = currencyFormatter.format(expenseSummary.totalExpense),
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Button(
-                        onClick = {
-                            expenseSummary = ExpenseDataGenerator.generateRandomSummary()
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
-                    ) {
-                        Text(text = "🔄 Generar datos aleatorios")
-                    }
                 }
             }
 
-            // Card Gráfica de Pastel (Categorías)
+            // Gráfica de Pastel (Gastos por Categoría)
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
@@ -168,15 +135,9 @@ fun ExpenseChartsScreen() {
                         .padding(16.dp)
                 ) {
                     Text(
-                        text = "Distribución de Gastos (Gráfica de Pastel)",
+                        text = "Gastos por Categoría (Pastel)",
                         fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = "Proporción de gastos por categoría",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        fontWeight = FontWeight.Bold
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -192,7 +153,7 @@ fun ExpenseChartsScreen() {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(220.dp),
+                            .height(200.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         PieChartHost(
@@ -200,38 +161,34 @@ fun ExpenseChartsScreen() {
                             modelProducer = pieModelProducer,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(200.dp)
+                                .height(180.dp)
                         )
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Leyenda de Categorías
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        val total = expenseSummary.totalCategoryExpense.coerceAtLeast(1f)
+                    // Leyenda
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         expenseSummary.categories.chunked(2).forEach { pair ->
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 pair.forEach { category ->
-                                    val percentage = (category.amount / total) * 100
                                     Row(
                                         modifier = Modifier.weight(1f),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Box(
                                             modifier = Modifier
-                                                .size(12.dp)
+                                                .size(10.dp)
                                                 .clip(CircleShape)
                                                 .background(category.color)
                                         )
                                         Spacer(modifier = Modifier.width(6.dp))
                                         Text(
-                                            text = "${category.name}: ${String.format(Locale.getDefault(), "%.1f%%", percentage)}",
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Medium,
-                                            color = MaterialTheme.colorScheme.onSurface
+                                            text = "${category.name}: ${currencyFormatter.format(category.amount)}",
+                                            fontSize = 12.sp
                                         )
                                     }
                                 }
@@ -244,7 +201,7 @@ fun ExpenseChartsScreen() {
                 }
             }
 
-            // Card Gráfica de Barras Dinámicas (Historial Mensual)
+            // Gráfica de Barras (Historial Mensual)
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
@@ -258,15 +215,9 @@ fun ExpenseChartsScreen() {
                         .padding(16.dp)
                 ) {
                     Text(
-                        text = "Historial de Gastos (Gráfica de Barras)",
+                        text = "Gastos Mensuales (Barras)",
                         fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = "Evolución mensual en los últimos 6 meses",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        fontWeight = FontWeight.Bold
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -291,79 +242,10 @@ fun ExpenseChartsScreen() {
                         modelProducer = barModelProducer,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(240.dp)
+                            .height(220.dp)
                     )
                 }
             }
-
-            // Card Desglose de Gastos en Lista
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "Desglose Detallado",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    val total = expenseSummary.totalCategoryExpense.coerceAtLeast(1f)
-                    expenseSummary.categories.forEach { category ->
-                        val percentage = category.amount / total
-                        Column(modifier = Modifier.padding(vertical = 6.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(10.dp)
-                                            .clip(CircleShape)
-                                            .background(category.color)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = category.name,
-                                        fontWeight = FontWeight.SemiBold,
-                                        fontSize = 14.sp
-                                    )
-                                }
-                                Text(
-                                    text = currencyFormatter.format(category.amount),
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(4.dp))
-                            LinearProgressIndicator(
-                                progress = { percentage },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(6.dp)
-                                    .clip(RoundedCornerShape(3.dp)),
-                                color = category.color,
-                                trackColor = category.color.copy(alpha = 0.2f)
-                            )
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }

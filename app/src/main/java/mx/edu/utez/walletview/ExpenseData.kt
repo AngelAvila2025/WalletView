@@ -1,13 +1,18 @@
 package mx.edu.utez.walletview
 
 import androidx.compose.ui.graphics.Color
+import mx.edu.utez.walletview.ui.theme.MinimalistBlueDeep
+import mx.edu.utez.walletview.ui.theme.MinimalistBluePrimary
+import mx.edu.utez.walletview.ui.theme.MinimalistBlueSecondary
+import mx.edu.utez.walletview.ui.theme.MinimalistGrayLight
+import mx.edu.utez.walletview.ui.theme.MinimalistGrayMedium
+import mx.edu.utez.walletview.ui.theme.MinimalistIndigo
 import kotlin.random.Random
 
 data class ExpenseCategory(
     val name: String,
     val amount: Float,
-    val color: Color,
-    val icon: String
+    val color: Color
 )
 
 data class MonthlyExpense(
@@ -19,40 +24,36 @@ data class ExpenseSummary(
     val categories: List<ExpenseCategory>,
     val monthlyExpenses: List<MonthlyExpense>
 ) {
-    val totalCategoryExpense: Float
+    val totalExpense: Float
         get() = categories.sumOf { it.amount.toDouble() }.toFloat()
-
-    val totalMonthlyExpense: Float
-        get() = monthlyExpenses.sumOf { it.amount.toDouble() }.toFloat()
 }
 
 object ExpenseDataGenerator {
     private val categoryDefinitions = listOf(
-        Triple("Comida 🍔", Color(0xFFFF6B6B), 1500f..4500f),
-        Triple("Transporte 🚗", Color(0xFF4ECDC4), 800f..2500f),
-        Triple("Vivienda 🏠", Color(0xFF45B7D1), 4000f..9000f),
-        Triple("Entretenimiento 🎬", Color(0xFF96CEB4), 600f..2000f),
-        Triple("Servicios 💡", Color(0xFFFFA726), 1000f..3000f),
-        Triple("Compras 🛍️", Color(0xFFAB47BC), 1200f..4000f)
+        Pair("Comida", MinimalistBluePrimary),
+        Pair("Transporte", MinimalistBlueSecondary),
+        Pair("Vivienda", MinimalistBlueDeep),
+        Pair("Entretenimiento", MinimalistIndigo),
+        Pair("Servicios", MinimalistGrayLight),
+        Pair("Compras", MinimalistGrayMedium)
     )
 
     private val monthNames = listOf("Ene", "Feb", "Mar", "Abr", "May", "Jun")
 
     fun generateRandomSummary(): ExpenseSummary {
-        val categories = categoryDefinitions.map { (name, color, range) ->
-            val randomAmount = (Random.nextDouble(range.start.toDouble(), range.endInclusive.toDouble()) / 10.0).let {
+        val categories = categoryDefinitions.map { (name, color) ->
+            val randomAmount = (Random.nextDouble(1500.0, 5000.0) / 10.0).let {
                 kotlin.math.round(it) * 10f
             }
             ExpenseCategory(
                 name = name,
                 amount = randomAmount.toFloat(),
-                color = color,
-                icon = name.takeLast(2)
+                color = color
             )
         }
 
         val monthlyExpenses = monthNames.map { month ->
-            val randomAmount = (Random.nextDouble(8000.0, 22000.0) / 100.0).let {
+            val randomAmount = (Random.nextDouble(8000.0, 20000.0) / 10.0).let {
                 kotlin.math.round(it) * 100f
             }
             MonthlyExpense(
